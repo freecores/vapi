@@ -21,11 +21,88 @@
 
 unsigned long num_vapi_ids = 8;
 
+#define ALL_ONES 0xFFFFFFFFLU
+#define ALL_ZEROS 0x00000000LU
+
+
+/* fails if x is false */
+#define ASSERT(x) ((x)?1: fail (__FILE__, __LINE__))
+
+static void fail (char *file, int line)
+{
+  printf( "Test failed in %s:%i\n", file, line );
+  exit( 1 );
+}
+
+
+static void test_registers( void )
+{
+}
+
+static void test_simple_io( void )
+{
+  unsigned i;
+  unsigned long oe;
+
+  for ( i = 1, oe = 1; i < 31; ++ i, oe = (oe << 1) | 1 ) {
+    ASSERT( vapi_read() == oe );
+    vapi_write( ~oe );
+    ASSERT( vapi_read() == 0 );
+    vapi_write( oe );
+  }
+}
+
+
+static void test_interrupts( void )
+{
+  unsigned i;
+
+  ASSERT( vapi_read() == 0x80000000 );
+  for ( i = 0; i < 31; ++ i ) {
+    vapi_write( 1LU << i );
+    ASSERT( vapi_read() == ((i % 2) ? 0x80000000 : 0) );
+  }
+}
+
+static void test_external_clock( void )
+{
+  unsigned i, j, edge;
+  unsigned long junk = 0xdf662b5c;
+
+  for ( edge = 0; edge < 2; ++ edge ) {
+    ASSERT( vapi_read() == 0x80000000 );
+    vapi_write_with_id( 2, !edge );
+    for ( i = 0; i < 31; ++ i ) {
+      for ( j = 0; j < 4; ++ j, junk = junk * 0xf7b1dfbd + 0x5bf9f28b )
+	vapi_write( junk );
+    
+      vapi_write( 1LU << i );
+      vapi_write_with_id( 2, edge );
+    
+      ASSERT( vapi_read() == ((i % 2) ? 0x80000000 : 0) );
+    
+      for ( j = 0; j < 4; ++ j, junk = junk * 0xf7b1dfbd + 0x5bf9f28b )
+	vapi_write( junk );
+      vapi_write_with_id( 2, !edge );
+    }
+  }
+}
+
+
+static void endshake( void )
+{
+  ASSERT( vapi_read() == 0x12340000 );
+  vapi_write( 0x00005678 );
+  ASSERT( vapi_read() == 0xDeadDead );
+}
+
 int vapi_main( void )
 {
-  vapi_write_with_id( 0, 0x01234567 );
-  if ( vapi_read() != 0x89abcdef )
-    return -1;
+  test_registers();
+  test_simple_io();
+  test_interrupts();
+  test_external_clock();
+  endshake();
   
   return 0;
 }
