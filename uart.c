@@ -1,24 +1,21 @@
 /* uart.c -- test for uart, by using VAPI
    Copyright (C) 2001, Marko Mlinar, markom@opencores.org
 
-   This file is part of OpenRISC 1000 Architectural Simulator.
+This file is part of OpenRISC 1000 Architectural Simulator.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
-
-/* UART needs 1 VAPI ID */
-unsigned num_vapi_ids = 1;
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 /* UART messages */
 #define TX_CMD      0xff000000
@@ -390,8 +387,8 @@ int vapi_main ()
   /* Test section area */
   test_registers ();
   init_8n1 ();
-//  send_recv_test ();
-//  break_test();
+  send_recv_test ();
+  break_test();
   different_modes_test ();
   interrupt_test ();
   control_register_test ();
