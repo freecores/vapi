@@ -185,9 +185,13 @@ void break_test ()
   VAPI_READ (control | '#');
   vapi_write(TX_CMD4 | TX_CMD4_BREAK | (5 & TX_CMD4_DELAY));
   vapi_write (control | 0);
+  MARK();
+#if 0
   /* Wait four chars */
   send_string ("234");
   MARK();
+#endif
+
   /* FIFO should be empty */
   vapi_write(TX_CMD5);
   send_string ("5");
@@ -265,6 +269,7 @@ void different_modes_test ()
   vapi_write(TX_CMD1 | 2); /* Set tx/rx speed */
   control_rx = control = 0x03 << 8;    /* 8N1 @ 2*/
   vapi_write(TX_CMD2 | control_rx); /* Set rx mode */
+  send_char ('x'); /* Send a character. It is possible that this char is received unproperly */
   recv_char ('T'); /* Wait for acknowledge before ending the test */
   MARK();
   printf ("OK\n");
@@ -382,11 +387,11 @@ int vapi_main ()
   /* Test section area */
   test_registers ();
   init_8n1 ();
-/*  send_recv_test ();
-  break_test();
+//  send_recv_test ();
+//  break_test();
   different_modes_test ();
   interrupt_test ();
-  control_register_test ();*/
+  control_register_test ();
   line_error_test ();
   /* End of test section area */
   
