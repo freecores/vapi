@@ -36,4 +36,4 @@ int vapi_waiting ();
 extern int vapi_main();
 
 /* Number of consecutive VAPI IDs the user needs */
-extern unsigned num_vapi_ids;
+extern unsigned long num_vapi_ids;

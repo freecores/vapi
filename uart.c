@@ -17,6 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
+
+#include "vapi.h"
+
+unsigned long num_vapi_ids = 1;  
+  
 /* UART messages */
 #define TX_CMD      0xff000000
 #define TX_CMD0     0x00000000
