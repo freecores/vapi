@@ -62,9 +62,10 @@ MAKEINFO = makeinfo
 PACKAGE = vapi
 VERSION = 1.1
 
-bin_PROGRAMS = uart
+bin_PROGRAMS = uart gpio
 
 uart_SOURCES = vapi.c vapi.h uart.c
+gpio_SOURCES = vapi.c vapi.h gpio.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -79,22 +80,24 @@ uart_OBJECTS =  vapi.o uart.o
 uart_LDADD = $(LDADD)
 uart_DEPENDENCIES = 
 uart_LDFLAGS = 
+gpio_OBJECTS =  vapi.o gpio.o
+gpio_LDADD = $(LDADD)
+gpio_DEPENDENCIES = 
+gpio_LDFLAGS = 
 CFLAGS = -g -O2
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-DIST_COMMON =  COPYING INSTALL Makefile.am Makefile.in aclocal.m4 \
-config.guess config.sub configure configure.in install-sh missing \
-mkinstalldirs
+DIST_COMMON =  Makefile.am Makefile.in aclocal.m4 configure configure.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/uart.P .deps/vapi.P
-SOURCES = $(uart_SOURCES)
-OBJECTS = $(uart_OBJECTS)
+DEP_FILES =  .deps/gpio.P .deps/uart.P .deps/vapi.P
+SOURCES = $(uart_SOURCES) $(gpio_SOURCES)
+OBJECTS = $(uart_OBJECTS) $(gpio_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -158,6 +161,10 @@ maintainer-clean-compile:
 uart: $(uart_OBJECTS) $(uart_DEPENDENCIES)
 	@rm -f uart
 	$(LINK) $(uart_LDFLAGS) $(uart_OBJECTS) $(uart_LDADD) $(LIBS)
+
+gpio: $(gpio_OBJECTS) $(gpio_DEPENDENCIES)
+	@rm -f gpio
+	$(LINK) $(gpio_LDFLAGS) $(gpio_OBJECTS) $(gpio_LDADD) $(LIBS)
 
 tags: TAGS
 
@@ -234,7 +241,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \

@@ -36,8 +36,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 #include <fcntl.h>
 #include <errno.h>
 
+#include "vapi.h"
+
 int vapi_fd;
-unsigned long vapi_id;
+unsigned long first_id, last_id;
 
 static int vapi_write_stream(int fd, void* buf, int len)
 {
@@ -227,13 +229,21 @@ static int connect_to_server(char* hostname,char* name)
   return sock;
 }
 
+/* Check if a vapi id is "good" */
+static inline int good_id (unsigned long id)
+{
+  return ((id >= first_id) && (id <= last_id));
+}
+
+
 /* Initialize a new connection to the or1k board, and make sure we are
    really connected.  */
 
 int
 vapi_init (char *port_name, unsigned long id)
 {
-  vapi_id = id;
+  first_id = id;
+  last_id = id + num_vapi_ids - 1;
   /* CZ 24/05/01 - Check to see if we have specified a remote
      VAPI interface or a local one. It is remote if it follows
      the URL naming convention vapi://<hostname>:<port> */
@@ -295,16 +305,32 @@ vapi_done ()  /* CZ */
 }
 
 /* Writes an unsigned long to server */
-void vapi_write(unsigned long data) {
-  printf ("WRITE [%08x, %08x]\n", vapi_id, data);
-  if (write_packet (vapi_id, data))
+void vapi_write(unsigned long data)
+{
+  vapi_write_with_id (0, data);
+}
+
+/* Writes an unsigned long to server with relative ID */
+void vapi_write_with_id(unsigned long relative_id, unsigned long data)
+{
+  printf ("WRITE [%08x, %08x]\n", first_id + relative_id, data);
+  if (write_packet (first_id + relative_id, data))
     perror ("write packet");
 }
 
 /* Reads an unsigned long from server */
-unsigned long vapi_read() {
-  unsigned long id, data;
-  if(read_packet (&id, &data)) {
+unsigned long vapi_read()
+{
+  unsigned long relative_id, data;
+  vapi_read_with_id (&relative_id, &data);
+  return data;
+}
+
+/* Reads an unsigned long and vapi id from server */
+void vapi_read_with_id(unsigned long *relative_id, unsigned long *data) 
+{
+  unsigned long id;
+  if(read_packet (&id, data)) {
     if(vapi_fd) {
       perror("vapi read");
       close(vapi_fd);
@@ -312,12 +338,15 @@ unsigned long vapi_read() {
     }
     exit (2);
   }
-  if (id != vapi_id) {
-    fprintf (stderr, "ERROR: Invalid id %x, expected %x.", id, vapi_id);
+  if (!good_id (id)) {
+    if (last_id > first_id)
+      fprintf (stderr, "ERROR: Invalid id %x, expected %x..%x", id, first_id, last_id);
+    else
+      fprintf (stderr, "ERROR: Invalid id %x, expected %x.", id, first_id);
     exit (1);
   }
-  printf ("READ [%08x, %08x]\n", id, data);
-  return data;
+  printf ("READ [%08x, %08x]\n", id, *data);
+  *relative_id = id - first_id;
 }
 
 /* Polls the port if anything is available and if do_read is set something is read from port. */
@@ -350,8 +379,8 @@ int vapi_waiting ()
 int main (int argc, char *argv[]) {
   unsigned long id, data;
   if (argc != 3) {
-    printf ("Usage: vapit URL ID\n");
-    printf ("vapit vapi://localhost:9998 0x12345678\n");
+    printf ("Usage: %s URL ID\n", argv[0]);
+    printf ("%s vapi://localhost:9998 0x12345678\n", argv[0]);
     return 2;
   }
   id = atol (argv[2]);
